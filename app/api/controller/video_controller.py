@@ -7,7 +7,7 @@ to process thumbnails and provides an endpoints to upload, create, get, delete a
 
 from fastapi import APIRouter, File, UploadFile, HTTPException, status, Path
 from app.api.service.video_service import VideoService
-from app.api.models import VideoUploadResponse, ThumbnailResponse
+from app.api.models import VideoUploadResponse, ThumbnailResponse, ThumbnailRequest
 from app.helpers.time import seconds_to_timestamp
 from typing import Optional
 
@@ -22,12 +22,12 @@ async def upload_video(file: UploadFile = File(...)):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Video upload failed")
 
 
-@router.post("/generate-thumbnail/{file_id}", response_model=ThumbnailResponse)
-async def generate_thumbnail(file_id: str, timestamp: int, resolution: Optional[str] = "320x240"):
+@router.post("/generate-thumbnail", response_model=ThumbnailResponse)
+async def generate_thumbnail(request: ThumbnailRequest):
     try:
-        thumbnail_response = await VideoService.generate_thumbnail(file_id, seconds_to_timestamp(timestamp), resolution)
+        thumbnail_response = await VideoService.generate_thumbnail(request.file_id, seconds_to_timestamp(request.timestamp), request.resolution)
         return thumbnail_response
     except FileNotFoundError:
-        raise HTTPException(status_code=404, detail="Video file not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Video file not found")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

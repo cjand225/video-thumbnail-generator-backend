@@ -7,3 +7,8 @@ class VideoUploadResponse(BaseModel):
     
 class ThumbnailResponse(BaseModel):
     thumbnail_id: str
+
+class ThumbnailRequest(BaseModel):
+    file_id: str
+    timestamp: int
+    resolution: Optional[str] = "320x240"

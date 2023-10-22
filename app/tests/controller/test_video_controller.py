@@ -5,6 +5,8 @@ from fastapi.testclient import TestClient
 from fastapi import status, HTTPException
 from unittest.mock import patch
 from io import BytesIO
+import pytest
+from app.api.service.video_service import VideoService
 
 # Set the environment variable for testing purposes.
 os.environ["ENV"] = "development"
@@ -49,3 +51,32 @@ def test_upload_video_failure(mock_upload):
     
     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
     assert response.json() == {"detail": "Video upload failed"}
+
+
+@pytest.fixture
+def video_file(tmp_path):
+    video_id = "9abe8652-f7d5-4f9e-8447-6a822a6355bc"
+    video_path = os.path.join(".",  VideoService.UPLOAD_DIR)
+    os.makedirs(video_path, exist_ok=True)
+
+    resource_path = os.path.join(".", "app", "tests","resources","test_video.mp4")
+    
+    with open(resource_path, "rb") as f:
+        video_content = f.read()
+
+    with open(os.path.join(video_path, f"{video_id}.mp4"), "wb") as f:
+        f.write(video_content)
+    
+    return video_id
+
+def test_generate_thumbnail(video_file):
+    timestamp = 1
+    resolution = "320x240"
+
+    response = client.get(f"/video/v1/generate-thumbnail/{video_file}?timestamp={timestamp}&resolution={resolution}")
+
+    assert response.status_code == 200
+    thumbnail_id = response.json().get("thumbnail_id")
+    assert thumbnail_id is not None
+    assert os.path.isfile(os.path.join(VideoService.THUMBNAIL_DIR, f"{thumbnail_id}.jpg"))
+

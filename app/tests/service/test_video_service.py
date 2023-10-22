@@ -71,7 +71,6 @@ async def test_generate_thumbnail(video_file):
         # Check if thumbnail is generated
         assert os.path.isfile(thumbnail_path)
     finally:
-        pass
         # Cleanup
         if os.path.isdir(video_path):
             shutil.rmtree(video_path)

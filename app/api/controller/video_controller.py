@@ -5,11 +5,10 @@ This module defines the API endpoints related to exchange rates. It uses the Vid
 to process thumbnails and provides an endpoints to upload, create, get, delete a thumbnail based on given parameters.
 """
 
-from fastapi import APIRouter, File, UploadFile, HTTPException, status, Path
+from fastapi import APIRouter, File, UploadFile, HTTPException, status
 from app.api.service.video_service import VideoService
 from app.api.models import VideoUploadResponse, ThumbnailResponse, ThumbnailRequest
 from app.helpers.time import seconds_to_timestamp
-from typing import Optional
 
 router = APIRouter()
 

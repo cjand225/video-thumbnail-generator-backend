@@ -22,7 +22,7 @@ async def upload_video(file: UploadFile = File(...)):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Video upload failed")
 
 
-@router.get("/generate-thumbnail/{file_id}", response_model=ThumbnailResponse)
+@router.post("/generate-thumbnail/{file_id}", response_model=ThumbnailResponse)
 async def generate_thumbnail(file_id: str, timestamp: int, resolution: Optional[str] = "320x240"):
     try:
         thumbnail_response = await VideoService.generate_thumbnail(file_id, seconds_to_timestamp(timestamp), resolution)

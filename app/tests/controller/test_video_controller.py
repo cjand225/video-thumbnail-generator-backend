@@ -73,7 +73,7 @@ def test_generate_thumbnail(video_file):
     timestamp = 1
     resolution = "320x240"
 
-    response = client.get(f"/video/v1/generate-thumbnail/{video_file}?timestamp={timestamp}&resolution={resolution}")
+    response = client.post(f"/video/v1/generate-thumbnail/{video_file}?timestamp={timestamp}&resolution={resolution}")
 
     assert response.status_code == 200
     thumbnail_id = response.json().get("thumbnail_id")

@@ -42,8 +42,11 @@ make up
 
 ### Endpoints
 
+All endpoints need to be prepended with `/video/v1/`.
+
 - `POST /upload`: Upload a video file.
 - `POST /generate-thumbnail`: Generate a thumbnail from a video file.
+- `GET /get-thumbnail/{thumbnail_id}`: Retrieve a generated thumbnail.
 
 ### Uploading a Video
 
@@ -51,7 +54,7 @@ To upload a video, send a POST request to `/upload` with the video file included
 
 ```bash
 curl -X 'POST' \
-'http://127.0.0.1:8000/upload' \
+'http://127.0.0.1:8000/video/v1/upload' \
 -H 'accept: application/json' \
 -H 'Content-Type: multipart/form-data' \
 -F 'file=@<path-to-your-video-file>;type=video/mp4'
@@ -64,7 +67,7 @@ To generate a thumbnail, send a POST request to /generate-thumbnail with the req
 
 ```bash
 curl -X 'POST' \
-  'http://127.0.0.1:8000/generate-thumbnail' \
+  'http://127.0.0.1:8000/video/v1/generate-thumbnail' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -72,6 +75,18 @@ curl -X 'POST' \
   "timestamp": "05",
   "resolution" : "320x240"
 }'
+```
+
+### Retrieving a Thumbnail
+
+To Retrieve a thumbnail, send a GET request to /get-thumbnail with the required information in the url.
+
+```bash
+curl -X 'GET' \
+  'http://127.0.0.1:8000/video/v1/get-thumbnail/thumbnail_id_goes_here' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -OJ
 ```
 
 ## Development

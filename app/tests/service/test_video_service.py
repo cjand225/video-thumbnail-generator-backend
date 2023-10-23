@@ -76,3 +76,37 @@ async def test_generate_thumbnail(video_file):
             shutil.rmtree(video_path)
         if os.path.isdir(VideoService.THUMBNAIL_DIR):
             shutil.rmtree(VideoService.THUMBNAIL_DIR)
+
+@pytest.fixture
+async def thumbnail_file():
+    try:
+        thumbnail_id = "84838f56-d9d7-4f54-881b-6021e34ae0e2"
+        thumbnail_path = os.path.join(".", VideoService.THUMBNAIL_DIR)
+        resource_path = os.path.abspath(os.path.join("app", "tests", "resources"))
+
+        # Make uploads directory
+        os.makedirs(thumbnail_path, exist_ok=True)
+
+        # Copy test video to uploads
+        source = os.path.join(resource_path, "test_thumbnail.jpg")
+        destination = os.path.join(thumbnail_path, f"{thumbnail_id}.jpg")
+        shutil.copy(source, destination)
+
+        yield thumbnail_id
+
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+    finally:
+        pass
+        # Cleanup
+        try:
+            os.remove(os.path.join(thumbnail_path, f"{thumbnail_id}.jpg"))
+        except FileNotFoundError:
+            pass
+
+@pytest.mark.asyncio
+async def test_get_thumbnail(thumbnail_file):
+    thumbnail_id = thumbnail_file
+    response = await VideoService.get_thumbnail(thumbnail_id)
+    assert response.filename == f"{thumbnail_id}.jpg"
+    assert response.media_type == "image/jpeg"

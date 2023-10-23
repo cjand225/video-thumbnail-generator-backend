@@ -1,7 +1,9 @@
+from fastapi import UploadFile
+from fastapi.responses import FileResponse
+from app.api.models import VideoUploadResponse, ThumbnailResponse
+
 import os
 import uuid
-from fastapi import UploadFile
-from app.api.models import VideoUploadResponse, ThumbnailResponse
 import aiofiles
 import subprocess
 import asyncio
@@ -73,4 +75,13 @@ class VideoService:
             raise Exception("FFmpeg failed")
     
         return ThumbnailResponse(thumbnail_id=thumbnail_id)
-    
+
+    @staticmethod
+    async def get_thumbnail(thumbnail_id : str) -> FileResponse:
+        file_name = f"{thumbnail_id}.jpg"
+        thumbnail_path = os.path.join(VideoService.THUMBNAIL_DIR, file_name)
+
+        if not os.path.isfile(thumbnail_path):
+            raise FileNotFoundError("Thumbnail file not found")
+
+        return FileResponse(path=thumbnail_path, filename=file_name, media_type='image/jpeg')

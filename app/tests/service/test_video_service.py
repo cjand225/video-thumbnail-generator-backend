@@ -97,12 +97,8 @@ async def thumbnail_file():
     except Exception as e:
         print(f"An error occurred: {str(e)}")
     finally:
-        pass
-        # Cleanup
-        try:
-            os.remove(os.path.join(thumbnail_path, f"{thumbnail_id}.jpg"))
-        except FileNotFoundError:
-            pass
+        if os.path.isdir(VideoService.THUMBNAIL_DIR):
+            shutil.rmtree(VideoService.THUMBNAIL_DIR)
 
 @pytest.mark.asyncio
 async def test_get_thumbnail(thumbnail_file):

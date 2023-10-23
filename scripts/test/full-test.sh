@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script: End-to-End Test
+# Script: Integration Test
 
 # Path to the video file, should be provided as the first command-line argument
 video_file="$1"

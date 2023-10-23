@@ -88,3 +88,46 @@ def test_generate_thumbnail(video_file):
     thumbnail_id = response.json().get("thumbnail_id")
     assert thumbnail_id is not None
     assert os.path.isfile(os.path.join(VideoService.THUMBNAIL_DIR, f"{thumbnail_id}.jpg"))
+
+
+@pytest.fixture
+def thumbnail_file():
+    thumbnail_id = "84838f56-d9d7-4f54-881b-6021e34ae0e2"
+    thumbnail_path = os.path.abspath(os.path.join(".", VideoService.THUMBNAIL_DIR))
+    os.makedirs(thumbnail_path, exist_ok=True)
+
+    resource_path = os.path.abspath(os.path.join(".", "app", "tests", "resources", "test_thumbnail.jpg"))
+
+    # Ensure the resource file exists
+    assert os.path.isfile(resource_path), "The source file does not exist."
+    
+    thumbnail_file_path = os.path.join(thumbnail_path, f"{thumbnail_id}.jpg")
+    shutil.copy(resource_path, thumbnail_file_path)
+
+    # Ensure the thumbnail file was copied successfully
+    assert os.path.isfile(thumbnail_file_path), "The thumbnail file was not created successfully."
+    
+    print(f"Thumbnail file created at: {thumbnail_file_path}")
+
+    return thumbnail_id, thumbnail_path
+
+def test_get_thumbnail_success(thumbnail_file):
+    thumbnail_id, thumbnail_path = thumbnail_file
+    thumbnail_file_path = os.path.join(thumbnail_path, f"{thumbnail_id}.jpg")
+
+    with open(thumbnail_file_path, 'rb') as f:
+        thumbnail_content = f.read()
+
+    response = client.get(f"/video/v1/get-thumbnail/{thumbnail_id}")
+
+    assert response.status_code == 200
+    assert response.content == thumbnail_content
+    assert response.headers["content-type"] == "image/jpeg"
+
+def test_get_thumbnail_not_found():
+    nonexistent_thumbnail_id = "nonexistent"
+
+    response = client.get(f"/video/v1/get-thumbnail/{nonexistent_thumbnail_id}")
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Thumbnail file not found"}

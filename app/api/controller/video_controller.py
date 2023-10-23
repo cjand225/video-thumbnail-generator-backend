@@ -30,3 +30,14 @@ async def generate_thumbnail(request: ThumbnailRequest):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Video file not found")
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+@router.get("/get-thumbnail/{thumbnail_id}")
+async def generate_thumbnail(thumbnail_id : str):
+    try:
+        get_thumbnail_response = await VideoService.get_thumbnail(thumbnail_id)
+        return get_thumbnail_response
+    except FileNotFoundError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Thumbnail file not found")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

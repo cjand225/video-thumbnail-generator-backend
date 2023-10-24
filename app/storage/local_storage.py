@@ -1,5 +1,5 @@
 import aiofiles
-import os
+import aiofiles.os
 from typing import Union
 from app.storage.storage_provider import StorageProvider
 
@@ -59,7 +59,7 @@ class LocalStorage(StorageProvider):
             FileNotFoundError: If the file does not exist.
             PermissionError: If there is insufficient permission to delete the file.
         """
-        os.remove(file_path)
+        await aiofiles.os.remove(file_path)
 
     @staticmethod
     async def file_exists(file_path: str) -> bool:
@@ -72,4 +72,4 @@ class LocalStorage(StorageProvider):
         Returns:
             bool: True if the file exists, False otherwise.
         """
-        return os.path.isfile(file_path)
+        return await aiofiles.os.path.isfile(file_path)

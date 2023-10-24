@@ -79,3 +79,27 @@ class StorageService:
             bool: True if the file exists, False otherwise.
         """
         return await self.storage_provider.file_exists(file_path)
+
+    async def directory_exists(self, directory_path: str) -> bool:
+        """
+        Checks asynchronously if a directory exists at the specified path.
+
+        Args:
+            directory_path (str): The path of the directory to check.
+
+        Returns:
+            bool: True if the directory exists, False otherwise.
+        """
+        return await self.storage_provider.directory_exists(directory_path)
+
+    async def delete_directory(self, directory_path: str) -> bool:
+        """
+        Deletes a directory at the specified path asynchronously.
+
+        Args:
+            directory_path (str): The path of the directory to delete.
+
+        Returns:
+            bool: True if the delete operation was successful, False otherwise.
+        """
+        return await self.storage_provider.delete_directory(directory_path)

@@ -94,3 +94,39 @@ class LocalStorage(StorageProvider):
             bool: True if the file exists, False otherwise.
         """
         return await aiofiles.os.path.isfile(file_path)
+
+    @staticmethod
+    async def directory_exists(directory_path: str) -> bool:
+        """
+        Checks if a directory exists asynchronously.
+
+        Args:
+            directory_path (str): The path of the directory to check.
+
+        Returns:
+            bool: True if the directory exists, False otherwise.
+        """
+        return await aiofiles.os.path.isdir(directory_path)
+
+    @staticmethod
+    async def delete_directory(directory_path: str) -> bool:
+        """
+        Deletes a directory asynchronously.
+
+        Args:
+            directory_path (str): The path of the directory to delete.
+
+        Returns:
+            bool: True if the directory was deleted successfully, False otherwise.
+        """
+        try:
+            # Ensure the directory is empty before attempting to remove it
+            if not await aiofiles.os.listdir(directory_path):
+                await aiofiles.os.rmdir(directory_path)
+                return True
+            else:
+                print("Directory is not empty")
+                return False
+        except Exception as e:
+            print(f"Failed to delete directory: {str(e)}")
+            return False

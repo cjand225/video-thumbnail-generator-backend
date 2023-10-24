@@ -101,3 +101,47 @@ async def test_file_exists(tmp_path):
     # Act / Assert
     assert await LocalStorage.file_exists(existing_file)
     assert not await LocalStorage.file_exists(non_existing_file)
+
+@pytest.mark.asyncio
+async def test_directory_exists(tmp_path):
+    """
+    Test the directory_exists method to ensure it correctly identifies existing and non-existing directories.
+
+    This test creates a directory and then checks that directory_exists correctly returns True for it and False for a
+    non-existing directory.
+
+    Args:
+        tmp_path (PosixPath): A pytest fixture that provides a temporary directory unique to the test invocation.
+    """
+    # Arrange
+    existing_directory = os.path.join(tmp_path, "existing_directory")
+    non_existing_directory = os.path.join(tmp_path, "non_existing_directory")
+    os.mkdir(existing_directory)
+
+    # Act / Assert
+    assert await LocalStorage.directory_exists(existing_directory)
+    assert not await LocalStorage.directory_exists(non_existing_directory)
+
+@pytest.mark.asyncio
+async def test_delete_directory(tmp_path):
+    """
+    Test the delete_directory method to ensure it deletes a directory correctly.
+
+    This test checks if the directory is successfully deleted from the specified location. It also verifies
+    that the directory_exists method correctly identifies that the directory no longer exists.
+
+    Args:
+        tmp_path (PosixPath): A pytest fixture that provides a temporary directory unique to the test invocation.
+    """
+    # Arrange
+    directory_location = os.path.join(tmp_path, "test_directory")
+    os.mkdir(directory_location)
+    assert os.path.exists(directory_location)
+
+    # Act
+    result = await LocalStorage.delete_directory(directory_location)
+
+    # Assert
+    assert result is True
+    assert not os.path.exists(directory_location)
+    assert not await LocalStorage.directory_exists(directory_location)

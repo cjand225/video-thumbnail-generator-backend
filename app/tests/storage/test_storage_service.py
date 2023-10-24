@@ -1,4 +1,5 @@
 import pytest
+import os
 from app.storage.local_storage import LocalStorage
 from app.storage.storage_service import StorageService
 
@@ -93,3 +94,42 @@ async def test_file_exists(storage_service, tmp_path):
     # Act / Assert
     assert await storage_service.file_exists(existing_file), "Should return True for existing file"
     assert not await storage_service.file_exists(non_existing_file), "Should return False for non-existing file"
+
+@pytest.mark.asyncio
+async def test_directory_exists(storage_service, tmp_path):
+    """
+    Test to check directory existence using the StorageService with LocalStorage.
+    
+    Args:
+        storage_service (StorageService): An instance of StorageService for file operations.
+        tmp_path (PosixPath): A pytest fixture that provides a temporary directory unique to the test invocation.
+    """
+    # Arrange
+    existing_directory = tmp_path / "existing_directory"
+    non_existing_directory = tmp_path / "non_existing_directory"
+    os.makedirs(existing_directory)
+
+    # Act / Assert
+    assert await storage_service.directory_exists(existing_directory), "Should return True for existing directory"
+    assert not await storage_service.directory_exists(non_existing_directory), "Should return False for non-existing directory"
+
+@pytest.mark.asyncio
+async def test_delete_directory(storage_service, tmp_path):
+    """
+    Test to ensure that a directory is deleted correctly using the StorageService with LocalStorage.
+    
+    Args:
+        storage_service (StorageService): An instance of StorageService for file operations.
+        tmp_path (PosixPath): A pytest fixture that provides a temporary directory unique to the test invocation.
+    """
+    # Arrange
+    directory_path = tmp_path / "test_directory"
+    os.makedirs(directory_path)
+    assert directory_path.exists(), "Directory should exist before deletion"
+
+    # Act
+    result = await storage_service.delete_directory(directory_path)
+
+    # Assert
+    assert result is True, "Directory deletion should be successful"
+    assert not directory_path.exists(), "Directory should not exist after deletion"

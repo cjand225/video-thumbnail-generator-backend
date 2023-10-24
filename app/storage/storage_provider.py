@@ -55,7 +55,7 @@ class StorageProvider(ABC):
             NotImplementedError: If this method is not implemented by the concrete class.
         """
         raise NotImplementedError
-    
+
     @staticmethod
     @abstractmethod
     async def file_exists(file_path: str) -> bool:
@@ -67,6 +67,40 @@ class StorageProvider(ABC):
 
         Returns:
             bool: True if the file exists, False otherwise.
+
+        Raises:
+            NotImplementedError: If this method is not implemented by the concrete class.
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    @abstractmethod
+    async def directory_exists(directory_path: str) -> bool:
+        """
+        Checks if a directory exists.
+
+        Args:
+            directory_path (str): The path of the directory to check.
+
+        Returns:
+            bool: True if the directory exists, False otherwise.
+
+        Raises:
+            NotImplementedError: If this method is not implemented by the concrete class.
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    @abstractmethod
+    async def delete_directory(directory_path: str) -> bool:
+        """
+        Deletes a directory and all its contents.
+
+        Args:
+            directory_path (str): The path of the directory to delete.
+
+        Returns:
+            bool: True if the directory is sucessfully deleted, False otherwise.
 
         Raises:
             NotImplementedError: If this method is not implemented by the concrete class.

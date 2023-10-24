@@ -1,4 +1,6 @@
 import aiofiles
+import aiofiles.os
+import os
 from typing import Union
 from app.storage.storage_provider import StorageProvider
 
@@ -28,6 +30,10 @@ class LocalStorage(StorageProvider):
             OSError: If there is an issue opening or writing to the file.
         """
         try:
+            directory = os.path.dirname(file_path)
+            if not await aiofiles.os.path.exists(directory):
+                await aiofiles.os.makedirs(directory)
+
             async with aiofiles.open(file_path, "wb") as f:
                 if isinstance(content, str):
                     content = content.encode()

@@ -1,10 +1,11 @@
 from fastapi import UploadFile
 from fastapi.responses import FileResponse
 from app.api.models import VideoUploadResponse, ThumbnailResponse
+from app.storage.storage_service import StorageService
+from app.storage.storage_factory import get_storage_service
 
 import os
 import uuid
-import aiofiles
 import subprocess
 import asyncio
 
@@ -20,6 +21,8 @@ class VideoService:
     THUMBNAIL_DIR = "thumbnails"
     """str: Directory to store generated thumbnail images."""
 
+    storage_service: StorageService = get_storage_service()
+
     @staticmethod
     async def upload_video(file: UploadFile) -> VideoUploadResponse:
         """
@@ -30,28 +33,17 @@ class VideoService:
 
         Returns:
             VideoUploadResponse: An object containing the filename and unique identifier of the uploaded video.
-        
-        Raises:
-            Exception: If the file could not be saved.
         """
-        # Generate a unique identifier for the uploaded file
         file_id = str(uuid.uuid4())
-
-        # Extract file extension from the original file name
         file_extension = os.path.splitext(file.filename)[1]
-        
-        # Ensure the upload directory exists, create if not
-        os.makedirs(VideoService.UPLOAD_DIR, exist_ok=True)
-
-        # Construct the full file path to save the uploaded file
         file_location = os.path.join(VideoService.UPLOAD_DIR, f"{file_id}{file_extension}")
-        
-        # Save the uploaded file asynchronously
-        async with aiofiles.open(file_location, "wb") as buffer:
-            data = await file.read()
-            await buffer.write(data)
-        
-        # Return response containing the original file name and the unique file identifier
+
+        data = await file.read()
+        success = await VideoService.storage_service.write_file(file_location, data)
+
+        if not success:
+            raise Exception("Failed to save video file")
+
         return VideoUploadResponse(filename=file.filename, file_id=file_id)
 
     @staticmethod

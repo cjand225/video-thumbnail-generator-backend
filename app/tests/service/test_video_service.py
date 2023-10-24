@@ -4,6 +4,7 @@ import pytest
 from fastapi import UploadFile
 from app.api.service.video_service import VideoService
 from app.api.models import VideoUploadResponse
+from app.storage.storage_provider import StorageProvider
 
 # Create a fixture for the UploadFile
 @pytest.fixture
@@ -17,16 +18,19 @@ async def upload_file(tmp_path):
     upload_file.file.close()
 
     # Clean up the uploaded files folder after the test
-    if os.path.exists(VideoService.UPLOAD_DIR):
-        shutil.rmtree(VideoService.UPLOAD_DIR)
+    storage_service: StorageProvider = VideoService.storage_service
+    if await storage_service.file_exists(str(VideoService.UPLOAD_DIR)):
+        await storage_service.delete_directory(str(VideoService.UPLOAD_DIR))
 
 @pytest.mark.asyncio
 async def test_upload_video(upload_file):
     response = await VideoService.upload_video(upload_file)
     assert isinstance(response, VideoUploadResponse)
     assert response.filename == "test_video.mp4"
-    assert os.path.exists(os.path.join(VideoService.UPLOAD_DIR, response.file_id + os.path.splitext(upload_file.filename)[1]))
-
+    
+    storage_service: StorageProvider = VideoService.storage_service
+    expected_file_path = os.path.join(str(VideoService.UPLOAD_DIR), response.file_id + os.path.splitext(upload_file.filename)[1])
+    assert await storage_service.file_exists(expected_file_path)
 
 @pytest.fixture
 def video_file():

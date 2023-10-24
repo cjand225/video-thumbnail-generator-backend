@@ -1,5 +1,6 @@
 import pytest
 import aiofiles
+import aiofiles.os
 import os
 
 from app.storage.local_storage import LocalStorage
@@ -20,9 +21,10 @@ async def test_write_file(tmp_path):
     file_location = os.path.join(tmp_path, "test_file.txt")
 
     # Act
-    await LocalStorage.write_file(file_location, file_content)
+    result = await LocalStorage.write_file(file_location, file_content)
 
     # Assert
+    assert result is True
     assert await aiofiles.os.path.exists(file_location)
     async with aiofiles.open(file_location, "rb") as f:
         saved_content = await f.read()
@@ -52,6 +54,32 @@ async def test_read_file(tmp_path):
     # Assert
     assert read_content == file_content
     assert await LocalStorage.file_exists(file_location)
+
+@pytest.mark.asyncio
+async def test_delete_file(tmp_path):
+    """
+    Test the delete_file method to ensure it deletes a file correctly.
+
+    This test checks if the file is successfully deleted from the specified location. It also verifies
+    that the file_exists method correctly identifies that the file no longer exists.
+
+    Args:
+        tmp_path (PosixPath): A pytest fixture that provides a temporary directory unique to the test invocation.
+    """
+    # Arrange
+    file_content = b"Hello, World!"
+    file_location = os.path.join(tmp_path, "test_file.txt")
+    async with aiofiles.open(file_location, "wb") as f:
+        await f.write(file_content)
+    assert await aiofiles.os.path.exists(file_location)
+
+    # Act
+    result = await LocalStorage.delete_file(file_location)
+
+    # Assert
+    assert result is True
+    assert not await aiofiles.os.path.exists(file_location)
+    assert not await LocalStorage.file_exists(file_location)
 
 @pytest.mark.asyncio
 async def test_file_exists(tmp_path):

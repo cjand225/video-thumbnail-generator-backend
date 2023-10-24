@@ -1,5 +1,4 @@
 import aiofiles
-import aiofiles.os
 from typing import Union
 from app.storage.storage_provider import StorageProvider
 
@@ -12,7 +11,7 @@ class LocalStorage(StorageProvider):
     """
 
     @staticmethod
-    async def write_file(file_path: str, content: Union[bytes, str]):
+    async def write_file(file_path: str, content: Union[bytes, str]) -> bool:
         """
         Writes content to a file at the specified file path asynchronously.
 
@@ -22,13 +21,21 @@ class LocalStorage(StorageProvider):
             file_path (str): The path of the file to write the content to.
             content (Union[bytes, str]): The content to be written to the file. Can be either bytes or a string.
 
+        Returns:
+            bool: True if the file was written successfully, False otherwise.
+
         Raises:
             OSError: If there is an issue opening or writing to the file.
         """
-        async with aiofiles.open(file_path, "wb") as f:
-            if isinstance(content, str):
-                content = content.encode()
-            await f.write(content)
+        try:
+            async with aiofiles.open(file_path, "wb") as f:
+                if isinstance(content, str):
+                    content = content.encode()
+                await f.write(content)
+            return True
+        except Exception as e:
+            print(f"Failed to write file: {str(e)}")
+            return False
 
     @staticmethod
     async def read_file(file_path: str) -> bytes:
@@ -48,18 +55,26 @@ class LocalStorage(StorageProvider):
             return await f.read()
 
     @staticmethod
-    async def delete_file(file_path: str):
+    async def delete_file(file_path: str) -> bool:
         """
         Deletes a file at the specified file path.
 
         Args:
             file_path (str): The path of the file to delete.
 
+        Returns:
+            bool: True if the file was deleted successfully, False otherwise.
+
         Raises:
             FileNotFoundError: If the file does not exist.
             PermissionError: If there is insufficient permission to delete the file.
         """
-        await aiofiles.os.remove(file_path)
+        try:
+            await aiofiles.os.remove(file_path)
+            return True
+        except Exception as e:
+            print(f"Failed to delete file: {str(e)}")
+            return False
 
     @staticmethod
     async def file_exists(file_path: str) -> bool:

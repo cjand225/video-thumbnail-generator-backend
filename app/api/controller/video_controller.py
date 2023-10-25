@@ -43,6 +43,7 @@ Available Routes:
     - 500: Internal server error.
 """
 from fastapi import APIRouter, File, UploadFile, HTTPException, status
+from fastapi.responses import StreamingResponse
 from app.api.service.video_service import VideoService
 from app.api.models import VideoUploadResponse, ThumbnailResponse, ThumbnailRequest
 from app.helpers.time import seconds_to_timestamp
@@ -73,9 +74,17 @@ async def generate_thumbnail(request: ThumbnailRequest):
 async def get_thumbnail(thumbnail_id: str):
     """Retrieves a thumbnail image."""
     try:
-        get_thumbnail_response = await VideoService.get_thumbnail(thumbnail_id)
-        return get_thumbnail_response
+        file_content, file_name = await VideoService.get_thumbnail(thumbnail_id)
+
+        headers = {
+            "Content-Disposition": f"attachment; filename={file_name}",
+            "Content-Type": "image/jpeg",
+        }
+
+        return StreamingResponse(iter([file_content]), headers=headers)
+        
     except FileNotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Thumbnail file not found")
+        
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

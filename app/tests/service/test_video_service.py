@@ -88,10 +88,10 @@ async def thumbnail_file():
         thumbnail_path = os.path.join(".", VideoService.THUMBNAIL_DIR)
         resource_path = os.path.abspath(os.path.join("app", "tests", "resources"))
 
-        # Make uploads directory
+        # Make thumbnails directory
         os.makedirs(thumbnail_path, exist_ok=True)
 
-        # Copy test video to uploads
+        # Copy test thumbnail to thumbnails directory
         source = os.path.join(resource_path, "test_thumbnail.jpg")
         destination = os.path.join(thumbnail_path, f"{thumbnail_id}.jpg")
         shutil.copy(source, destination)
@@ -107,6 +107,6 @@ async def thumbnail_file():
 @pytest.mark.asyncio
 async def test_get_thumbnail(thumbnail_file):
     thumbnail_id = thumbnail_file
-    response = await VideoService.get_thumbnail(thumbnail_id)
-    assert response.filename == f"{thumbnail_id}.jpg"
-    assert response.media_type == "image/jpeg"
+    file_content, file_name = await VideoService.get_thumbnail(thumbnail_id)
+    assert file_name == f"{thumbnail_id}.jpg", "File name should match the expected value"
+    assert file_content, "File content should not be empty"

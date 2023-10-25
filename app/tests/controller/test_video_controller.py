@@ -109,7 +109,9 @@ def thumbnail_file():
     
     print(f"Thumbnail file created at: {thumbnail_file_path}")
 
-    return thumbnail_id, thumbnail_path
+    yield thumbnail_id, thumbnail_path
+    
+    shutil.rmtree(thumbnail_path)
 
 def test_get_thumbnail_success(thumbnail_file):
     thumbnail_id, thumbnail_path = thumbnail_file
@@ -123,6 +125,7 @@ def test_get_thumbnail_success(thumbnail_file):
     assert response.status_code == 200
     assert response.content == thumbnail_content
     assert response.headers["content-type"] == "image/jpeg"
+    assert "Content-Disposition" in response.headers
 
 def test_get_thumbnail_not_found():
     nonexistent_thumbnail_id = "nonexistent"

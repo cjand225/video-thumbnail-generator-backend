@@ -1,5 +1,5 @@
 from fastapi import UploadFile
-from fastapi.responses import FileResponse
+from typing import Tuple
 from app.api.models import VideoUploadResponse, ThumbnailResponse
 from app.storage.storage_service import StorageService
 from app.storage.storage_factory import get_storage_service
@@ -101,7 +101,7 @@ class VideoService:
         return ThumbnailResponse(thumbnail_id=thumbnail_id)
 
     @staticmethod
-    async def get_thumbnail(thumbnail_id: str) -> FileResponse:
+    async def get_thumbnail(thumbnail_id: str) -> Tuple[bytes, str]:
         """
         Retrieves a thumbnail image by its identifier.
 
@@ -109,7 +109,7 @@ class VideoService:
             thumbnail_id (str): The unique identifier of the thumbnail.
 
         Returns:
-            FileResponse: A response object to send the thumbnail file to the client.
+            Tuple[bytes, str]: A tuple containing the file content as bytes and the file name.
 
         Raises:
             FileNotFoundError: If the thumbnail file is not found.
@@ -119,8 +119,9 @@ class VideoService:
         thumbnail_path = os.path.join(VideoService.THUMBNAIL_DIR, file_name)
 
         # Check if the thumbnail file exists
-        if not os.path.isfile(thumbnail_path):
+        if not await VideoService.storage_service.file_exists(thumbnail_path):
             raise FileNotFoundError("Thumbnail file not found")
 
-        # Return response to send the thumbnail file to the client
-        return FileResponse(path=thumbnail_path, filename=file_name, media_type='image/jpeg')
+        # Read the file content
+        file_content = await VideoService.storage_service.read_file(thumbnail_path)
+        return file_content, file_name

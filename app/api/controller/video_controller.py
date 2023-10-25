@@ -63,8 +63,8 @@ async def upload_video(file: UploadFile = File(...)):
 async def generate_thumbnail(request: ThumbnailRequest):
     """Generates a thumbnail for a video."""
     try:
-        thumbnail_response = await VideoService.generate_thumbnail(request.file_id, seconds_to_timestamp(request.timestamp), request.resolution)
-        return thumbnail_response
+        thumbnail_id = await VideoService.generate_thumbnail(request.file_id, seconds_to_timestamp(request.timestamp), request.resolution)
+        return ThumbnailResponse(thumbnail_id=thumbnail_id)
     except FileNotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Video file not found")
     except Exception as e:

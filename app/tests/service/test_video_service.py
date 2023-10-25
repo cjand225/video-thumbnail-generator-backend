@@ -1,4 +1,5 @@
 import os
+import aiofiles.os
 import shutil
 import pytest
 from fastapi import UploadFile
@@ -32,33 +33,29 @@ async def test_upload_video(upload_file):
     expected_file_path = os.path.join(str(VideoService.UPLOAD_DIR), response.file_id + os.path.splitext(upload_file.filename)[1])
     assert await storage_service.file_exists(expected_file_path)
 
+    await storage_service.delete_file(expected_file_path)
+
 @pytest.fixture
-def video_file():
+async def video_file():
+    video_id = "9abe8652-f7d5-4f9e-8447-6a822a6355bc"
+    video_path = os.path.join(".", VideoService.UPLOAD_DIR)
+    resource_path = os.path.abspath(os.path.join("app", "tests", "resources"))
+
+    # Make uploads directory
+    os.makedirs(video_path, exist_ok=True)
+
+    # Copy test video to uploads
+    source = os.path.join(resource_path, "test_video.mp4")
+    destination = os.path.join(video_path, f"{video_id}.mp4")
+    shutil.copy(source, destination)
+
+    yield video_id, video_path
+
+    # Cleanup
     try:
-        video_id = "9abe8652-f7d5-4f9e-8447-6a822a6355bc"
-        video_path = os.path.join(".", VideoService.UPLOAD_DIR)
-        resource_path = os.path.abspath(os.path.join("app", "tests", "resources"))
-
-        # Make uploads directory
-        os.makedirs(video_path, exist_ok=True)
-
-        # Copy test video to uploads
-        source = os.path.join(resource_path, "test_video.mp4")
-        destination = os.path.join(video_path, f"{video_id}.mp4")
-        shutil.copy(source, destination)
-
-        yield video_id, video_path
-
-    except Exception as e:
-        print(f"An error occurred: {str(e)}")
-    finally:
+        await aiofiles.os.remove(destination)
+    except FileNotFoundError:
         pass
-        # Cleanup
-        try:
-            os.remove(os.path.join(video_path, f"{video_id}.mp4"))
-        except FileNotFoundError:
-            pass
-
 
 @pytest.mark.asyncio
 async def test_generate_thumbnail(video_file):
@@ -68,8 +65,7 @@ async def test_generate_thumbnail(video_file):
         # Generate thumbnail
         timestamp = "00:00:01"
         resolution = "320x240"
-        response = await VideoService.generate_thumbnail(video_id, timestamp, resolution)
-        thumbnail_id = response.thumbnail_id
+        thumbnail_id = await VideoService.generate_thumbnail(video_id, timestamp, resolution)
         thumbnail_path = os.path.join(".", VideoService.THUMBNAIL_DIR, thumbnail_id + '.jpg')
 
         # Check if thumbnail is generated

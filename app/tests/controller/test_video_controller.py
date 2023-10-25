@@ -1,6 +1,7 @@
 # test_video_controller.py
 
 import os
+import aiofiles.os
 from fastapi.testclient import TestClient
 from fastapi import status, HTTPException
 from unittest.mock import patch
@@ -55,40 +56,41 @@ def test_upload_video_failure(mock_upload):
 
 
 @pytest.fixture
-def video_file():
+async def video_file():
     video_id = "9abe8652-f7d5-4f9e-8447-6a822a6355bc"
     video_path = os.path.abspath(os.path.join(".", VideoService.UPLOAD_DIR))
     os.makedirs(video_path, exist_ok=True)
 
     resource_path = os.path.abspath(os.path.join(".", "app", "tests", "resources", "test_video.mp4"))
-
-    # Ensure the resource file exists
     assert os.path.isfile(resource_path), "The source video file does not exist."
     
     video_file_path = os.path.join(video_path, f"{video_id}.mp4")
     shutil.copy(resource_path, video_file_path)
-
-    # Ensure the video file was copied successfully
     assert os.path.isfile(video_file_path), "The video file was not created successfully."
-    
-    print(f"Video file created at: {video_file_path}")
 
-    return video_id
+    yield video_id
 
-def test_generate_thumbnail(video_file):
+    # Cleanup
+    await aiofiles.os.remove(video_file_path)
+    await aiofiles.os.removedirs(video_path)
 
+@pytest.mark.asyncio
+async def test_generate_thumbnail(video_file):
     data = {
-        "file_id" : video_file,
+        "file_id": video_file,
         "timestamp": 1,
         "resolution": "320x240"
     }
-    response = client.post(f"/video/v1/generate-thumbnail", json=data)
+    response = client.post("/video/v1/generate-thumbnail", json=data)
 
     assert response.status_code == 200
     thumbnail_id = response.json().get("thumbnail_id")
     assert thumbnail_id is not None
-    assert os.path.isfile(os.path.join(VideoService.THUMBNAIL_DIR, f"{thumbnail_id}.jpg"))
+    thumbnail_path = os.path.join(VideoService.THUMBNAIL_DIR, f"{thumbnail_id}.jpg")
+    assert os.path.isfile(thumbnail_path), "Thumbnail was not created successfully."
 
+    # Cleanup
+    await aiofiles.os.remove(thumbnail_path)
 
 @pytest.fixture
 def thumbnail_file():

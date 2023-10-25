@@ -1,5 +1,5 @@
 from fastapi import UploadFile
-from typing import Tuple
+from typing import Tuple, Union
 from app.api.models import VideoUploadResponse, ThumbnailResponse
 from app.storage.storage_service import StorageService
 from app.storage.storage_factory import get_storage_service
@@ -47,7 +47,7 @@ class VideoService:
         return VideoUploadResponse(filename=file.filename, file_id=file_id)
 
     @staticmethod
-    async def generate_thumbnail(file_id: str, timestamp: str = "00:00:01", resolution: str = "320x240") -> ThumbnailResponse:
+    async def generate_thumbnail(file_id: str, timestamp: str = "00:00:01", resolution: str = "320x240") -> str:
         """
         Generates a thumbnail image for a given video file.
 
@@ -57,48 +57,54 @@ class VideoService:
             resolution (str, optional): Resolution of the generated thumbnail. Defaults to "320x240".
 
         Returns:
-            ThumbnailResponse: An object containing the thumbnail identifier.
+            str: The unique identifier of the generated thumbnail.
 
         Raises:
             FileNotFoundError: If the video file is not found.
             Exception: If FFmpeg fails to generate the thumbnail.
         """
         # Search for the video file in the supported formats
+        video_path = None
         for extension in ['mp4', 'mkv', 'avi', 'mov']:
-            video_path = os.path.join(".", VideoService.UPLOAD_DIR, f"{file_id}.{extension}")
-            if os.path.isfile(video_path):
+            potential_path = os.path.join(".", VideoService.UPLOAD_DIR, f"{file_id}.{extension}")
+            if await VideoService.storage_service.file_exists(potential_path):
+                video_path = potential_path
                 break
-        else:
+        if video_path is None:
             raise FileNotFoundError("Video file not found")
 
         # Generate a unique identifier for the thumbnail
         thumbnail_id = str(uuid.uuid4())
         thumbnail_path = os.path.join(VideoService.THUMBNAIL_DIR, thumbnail_id + '.jpg')
 
-        # Ensure the thumbnail directory exists, create if not
-        os.makedirs(VideoService.THUMBNAIL_DIR, exist_ok=True)
-
-        # Prepare FFmpeg command to generate thumbnail
+        # Prepare FFmpeg command to generate thumbnail and output to stdout
         ffmpeg_cmd = [
             "ffmpeg",
             "-ss", timestamp,
             "-i", video_path,
             "-vframes", "1",
             "-s", resolution,
-            thumbnail_path
+            "-f", "image2",
+            "-c:v", "mjpeg",
+            "-"  # Output to stdout
         ]
 
         # Run FFmpeg command asynchronously
         process = await asyncio.create_subprocess_exec(*ffmpeg_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = await process.communicate()
-    
+
         # Check if FFmpeg command was successful
         if process.returncode != 0:
             print("FFmpeg failed:", stderr.decode())
-            raise Exception("FFmpeg failed")
-    
-        # Return response containing the thumbnail identifier
-        return ThumbnailResponse(thumbnail_id=thumbnail_id)
+            raise Exception("FFmpeg failed to generate thumbnail")
+
+        # Save thumbnail to storage
+        try:
+            await VideoService.storage_service.write_file(thumbnail_path, stdout)
+        except Exception as e:
+            raise Exception(f"Failed to save thumbnail: {str(e)}")
+
+        return thumbnail_id
 
     @staticmethod
     async def get_thumbnail(thumbnail_id: str) -> Tuple[bytes, str]:

@@ -1,6 +1,4 @@
-from fastapi import UploadFile
-from typing import Tuple, Union
-from app.api.models import VideoUploadResponse, ThumbnailResponse
+from typing import Tuple
 from app.storage.storage_service import StorageService
 from app.storage.storage_factory import get_storage_service
 

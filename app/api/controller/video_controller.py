@@ -54,8 +54,9 @@ router = APIRouter()
 async def upload_video(file: UploadFile = File(...)):
     """Handles video file uploads."""
     try:
-        result = await VideoService.upload_video(file)
-        return result
+        file_data = await file.read()
+        file_name, file_id = await VideoService.upload_video(file_name=file.filename, file_data=file_data)
+        return VideoUploadResponse(filename=file_name, file_id=file_id)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Video upload failed")
 

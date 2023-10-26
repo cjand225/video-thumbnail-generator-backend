@@ -19,7 +19,7 @@ from app.main import app
 # Initialize a test client for the FastAPI application.
 client = TestClient(app)
 
-@patch('app.api.controller.video_controller.VideoService.upload_video')
+@patch('app.api.service.video_service.VideoService.upload_video')
 def test_upload_video_success(mock_upload):
     """
     Test the /upload endpoint for a successful video upload.
@@ -28,9 +28,9 @@ def test_upload_video_success(mock_upload):
     The test then checks if the API endpoint returns the expected status code and JSON response.
     """
     content = b"file_content"
-    mock_upload.return_value = {"filename": "test_video.mp4", "file_id": "1234567890"}
+    mock_upload.return_value = ("test_video.mp4", "1234567890")  # Updated to return a tuple instead of a dictionary
     response = client.post(
-        "/video/v1/upload",
+        "/video/v1/upload",  # Updated according to the provided controller function route
         files={"file": ("test_video.mp4", BytesIO(content), "video/mp4")}
     )
     assert response.status_code == 200
@@ -39,21 +39,20 @@ def test_upload_video_success(mock_upload):
         "file_id": "1234567890"
     }
 
-@patch('app.api.controller.video_controller.VideoService.upload_video')
+@patch('app.api.service.video_service.VideoService.upload_video')
 def test_upload_video_failure(mock_upload):
     content = b"file_content"
     
     # Configure the mock to raise an exception when called
-    mock_upload.side_effect = HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Video upload failed")
+    mock_upload.side_effect = Exception("Internal Server Error")
     
     response = client.post(
-        "/video/v1/upload",
+        "/video/v1/upload",  # Updated according to the provided controller function route
         files={"file": ("test_video.mp4", BytesIO(content), "video/mp4")}
     )
     
     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
     assert response.json() == {"detail": "Video upload failed"}
-
 
 @pytest.fixture
 async def video_file():

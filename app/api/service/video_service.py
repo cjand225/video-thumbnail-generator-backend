@@ -24,7 +24,7 @@ class VideoService:
     storage_service: StorageService = get_storage_service()
 
     @staticmethod
-    async def upload_video(file: UploadFile) -> VideoUploadResponse:
+    async def upload_video(file_name: str, file_data: bytes) -> dict:
         """
         Handles the uploading of a video file.
 
@@ -35,16 +35,15 @@ class VideoService:
             VideoUploadResponse: An object containing the filename and unique identifier of the uploaded video.
         """
         file_id = str(uuid.uuid4())
-        file_extension = os.path.splitext(file.filename)[1]
+        file_extension = os.path.splitext(file_name)[1]
         file_location = os.path.join(VideoService.UPLOAD_DIR, f"{file_id}{file_extension}")
 
-        data = await file.read()
-        success = await VideoService.storage_service.write_file(file_location, data)
+        success = await VideoService.storage_service.write_file(file_location, file_data)
 
         if not success:
             raise Exception("Failed to save video file")
 
-        return VideoUploadResponse(filename=file.filename, file_id=file_id)
+        return file_name, file_id
 
     @staticmethod
     async def generate_thumbnail(file_id: str, timestamp: str = "00:00:01", resolution: str = "320x240") -> str:

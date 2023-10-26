@@ -15,22 +15,24 @@ async def upload_file(tmp_path):
     file_path.write_bytes(file_content)
 
     upload_file = UploadFile(filename="test_video.mp4", file=file_path.open("rb"))
-    yield upload_file
+    yield upload_file.filename, await upload_file.read()
     upload_file.file.close()
 
     # Clean up the uploaded files folder after the test
-    storage_service: StorageProvider = VideoService.storage_service
+    storage_service = VideoService.storage_service  # adjust according to your actual storage service
     if await storage_service.file_exists(str(VideoService.UPLOAD_DIR)):
         await storage_service.delete_directory(str(VideoService.UPLOAD_DIR))
 
 @pytest.mark.asyncio
 async def test_upload_video(upload_file):
-    response = await VideoService.upload_video(upload_file)
-    assert isinstance(response, VideoUploadResponse)
-    assert response.filename == "test_video.mp4"
+    filename, file_data = upload_file
+    filename, file_id = await VideoService.upload_video(file_name=filename, file_data=file_data)
     
-    storage_service: StorageProvider = VideoService.storage_service
-    expected_file_path = os.path.join(str(VideoService.UPLOAD_DIR), response.file_id + os.path.splitext(upload_file.filename)[1])
+    assert filename == "test_video.mp4"
+    assert file_id is not None
+    
+    storage_service = VideoService.storage_service
+    expected_file_path = os.path.join(VideoService.UPLOAD_DIR, f"{file_id}.mp4")
     assert await storage_service.file_exists(expected_file_path)
 
     await storage_service.delete_file(expected_file_path)

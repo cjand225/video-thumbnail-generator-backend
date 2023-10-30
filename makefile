@@ -1,7 +1,7 @@
 # Variables
 IMAGE_NAME := video-thumbnail-generator-backend-image
 CONTAINER_NAME := video-thumbnail-generator-backend-image
-PORT := 8000
+PORT := 8005
 
 # Build the Docker image
 build:
@@ -9,7 +9,7 @@ build:
 
 # Run the Docker container
 run:
-	docker run --name $(CONTAINER_NAME) -p $(PORT):$(PORT) $(IMAGE_NAME)
+	docker run --detach --name $(CONTAINER_NAME) -p $(PORT):$(PORT) $(IMAGE_NAME)
 
 # Stop the Docker container
 stop:

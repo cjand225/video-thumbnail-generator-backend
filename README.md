@@ -1,5 +1,7 @@
 # Video Thumbnail Generator Backend
 
+[![CI/CD Pipeline](https://github.com/cjand225/video-thumbnail-generator-backend/actions/workflows/main.yml/badge.svg?event=push)](https://github.com/cjand225/video-thumbnail-generator-backend/actions/workflows/main.yml)
+
 ## Description
 
 This backend server is designed to generate thumbnails from videos, providing functionalities like uploading videos, generating thumbnails and receiving thumbnails. Built with FastAPI, it leverages asynchronous programming for improved performance, and utilizes FFmpeg for video processing tasks.

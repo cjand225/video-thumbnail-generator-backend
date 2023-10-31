@@ -61,13 +61,15 @@ class VideoService:
             Exception: If FFmpeg fails to generate the thumbnail.
         """
         # Search for the video file in the supported formats
-        video_path = None
+        video_bytes = None
+        file_extension = None
         for extension in ['mp4', 'mkv', 'avi', 'mov']:
-            potential_path = os.path.join(".", VideoService.UPLOAD_DIR, f"{file_id}.{extension}")
+            potential_path = os.path.join(VideoService.UPLOAD_DIR, f"{file_id}.{extension}")
             if await VideoService.storage_service.file_exists(potential_path):
-                video_path = potential_path
+                video_bytes = await VideoService.storage_service.read_file(potential_path)
+                file_extension = extension
                 break
-        if video_path is None:
+        if video_bytes is None:
             raise FileNotFoundError("Video file not found")
 
         # Generate a unique identifier for the thumbnail
@@ -77,21 +79,22 @@ class VideoService:
         # Prepare FFmpeg command to generate thumbnail and output to stdout
         ffmpeg_cmd = [
             "ffmpeg",
+            "-f", file_extension,
+            "-i", "pipe:0",
             "-ss", timestamp,
-            "-i", video_path,
             "-vframes", "1",
             "-s", resolution,
-            "-f", "image2",
+            "-f", "image2pipe",
             "-c:v", "mjpeg",
-            "-"  # Output to stdout
+            "pipe:1"
         ]
 
         # Run FFmpeg command asynchronously
-        process = await asyncio.create_subprocess_exec(*ffmpeg_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stdout, stderr = await process.communicate()
+        process = await asyncio.create_subprocess_exec(*ffmpeg_cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = await process.communicate(input=video_bytes)
 
         # Check if FFmpeg command was successful
-        if process.returncode != 0:
+        if process.returncode != 0 or len(stdout) <= 0:
             print("FFmpeg failed:", stderr.decode())
             raise Exception("FFmpeg failed to generate thumbnail")
 

@@ -19,9 +19,6 @@ class VideoService:
     THUMBNAIL_DIR = "thumbnails"
     """str: Directory to store generated thumbnail images."""
 
-    TEMP_DIR = "tmp"
-    """str: Directory to store temporary working files."""
-
     storage_service: StorageService = get_storage_service()
 
     @staticmethod
@@ -64,13 +61,13 @@ class VideoService:
             Exception: If FFmpeg fails to generate the thumbnail.
         """
         # Search for the video file in the supported formats
-        video_bytes = None
+        video_path = None
         for extension in ['mp4', 'mkv', 'avi', 'mov']:
-            potential_path = os.path.join(VideoService.UPLOAD_DIR, f"{file_id}.{extension}")
+            potential_path = os.path.join(".", VideoService.UPLOAD_DIR, f"{file_id}.{extension}")
             if await VideoService.storage_service.file_exists(potential_path):
-                video_bytes = await VideoService.storage_service.read_file(potential_path)
+                video_path = potential_path
                 break
-        if video_bytes is None:
+        if video_path is None:
             raise FileNotFoundError("Video file not found")
 
         # Generate a unique identifier for the thumbnail
@@ -81,7 +78,7 @@ class VideoService:
         ffmpeg_cmd = [
             "ffmpeg",
             "-ss", timestamp,
-            "-i", "-",
+            "-i", video_path,
             "-vframes", "1",
             "-s", resolution,
             "-f", "image2",
@@ -90,8 +87,8 @@ class VideoService:
         ]
 
         # Run FFmpeg command asynchronously
-        process = await asyncio.create_subprocess_exec(*ffmpeg_cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stdout, stderr = await process.communicate(input=video_bytes)
+        process = await asyncio.create_subprocess_exec(*ffmpeg_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = await process.communicate()
 
         # Check if FFmpeg command was successful
         if process.returncode != 0:

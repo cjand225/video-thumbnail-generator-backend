@@ -10,6 +10,7 @@ class Config:
     """
     ENV = "development"  # Default environment
     ORIGINS = []  # Default allowed origins for CORS
+    BUCKET_NAME = os.getenv("BUCKET_NAME", "video-thumbnail-generator").lower()
 
 
 class DevelopmentConfig(Config):

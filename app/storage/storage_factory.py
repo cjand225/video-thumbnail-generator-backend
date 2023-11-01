@@ -10,7 +10,7 @@ def get_storage_service() -> StorageService:
     Returns:
         StorageService: An instance of StorageService configured with the appropriate storage provider.
     """
-    storage_type = os.getenv("STORAGE_TYPE", "aws").lower()
+    storage_type = os.getenv("STORAGE_TYPE", "local").lower()
 
     if storage_type == "local":
         return StorageService(LocalStorage())

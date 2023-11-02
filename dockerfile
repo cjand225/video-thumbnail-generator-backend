@@ -4,6 +4,7 @@ FROM python:3.11
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
+ENV STORAGE_TYPE aws
 
 # Set the working directory in the container
 WORKDIR /home

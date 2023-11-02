@@ -1,4 +1,4 @@
-from app.helpers.video import supported_video_formats, is_supported_video_format
+from app.helpers.video import supported_video_formats, is_supported_video_format, is_valid_resolution
 import pytest
 
 def test_supported_video_formats():
@@ -37,3 +37,17 @@ def test_is_supported_video_format_case_insensitive():
     """Test the is_supported_video_format function for case-insensitivity."""
     assert is_supported_video_format("video.MP4"), "Uppercase file extensions should be recognized as supported"
     assert not is_supported_video_format("image.PNG"), "Uppercase file extensions of unsupported types should not be recognized as supported"
+
+def test_valid_resolutions():
+    assert is_valid_resolution("1920x1080"), "1920x1080 should be a valid resolution."
+    assert is_valid_resolution("1280x720"), "1280x720 should be a valid resolution."
+    assert is_valid_resolution("320x240"), "320x240 should be a valid resolution."
+
+def test_invalid_resolutions():
+    assert not is_valid_resolution("1920x1200"), "1920x1200 should not be a valid resolution."
+    assert not is_valid_resolution("0x0"), "0x0 should not be a valid resolution."
+    assert not is_valid_resolution("abc"), "Non-numeric resolutions should not be valid."
+    assert not is_valid_resolution("123x"), "Incomplete resolutions should not be valid."
+    assert not is_valid_resolution("x123"), "Incomplete resolutions should not be valid."
+    assert not is_valid_resolution("9999x9999"), "Resolutions too large should not be valid."
+    assert not is_valid_resolution("-1920x1080"), "Negative resolutions should not be valid."

@@ -52,3 +52,8 @@ def is_valid_resolution(resolution: str) -> bool:
     """
     allowed_resolutions = supported_resolutions()
     return resolution in allowed_resolutions
+
+def is_valid_seconds(seconds):
+    if isinstance(seconds, int) and seconds >= 0:
+        return True
+    return False

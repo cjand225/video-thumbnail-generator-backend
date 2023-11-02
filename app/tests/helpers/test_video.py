@@ -1,4 +1,4 @@
-from app.helpers.video import supported_video_formats, is_supported_video_format, is_valid_resolution
+from app.helpers.video import supported_video_formats, is_supported_video_format, is_valid_resolution, is_valid_seconds
 import pytest
 
 def test_supported_video_formats():
@@ -51,3 +51,14 @@ def test_invalid_resolutions():
     assert not is_valid_resolution("x123"), "Incomplete resolutions should not be valid."
     assert not is_valid_resolution("9999x9999"), "Resolutions too large should not be valid."
     assert not is_valid_resolution("-1920x1080"), "Negative resolutions should not be valid."
+
+def test_valid_seconds():
+    assert is_valid_seconds(0), "0 should be a valid second."
+    assert is_valid_seconds(1), "1 should be a valid second."
+    assert is_valid_seconds(60), "60 should be a valid second."
+
+def test_invalid_seconds():
+    assert not is_valid_seconds(-1), "-1 should not be a valid second."
+    assert not is_valid_seconds(1.5), "1.5 should not be a valid second."
+    assert not is_valid_seconds("a"), "'a' should not be a valid second."
+    assert not is_valid_seconds(None), "None should not be a valid second."

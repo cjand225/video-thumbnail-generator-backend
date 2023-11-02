@@ -12,11 +12,11 @@ awscli==1.29.74
 boto3==1.28.17
 botocore==1.31.17
 certifi==2023.7.22
-cffi @ file:///private/tmp/cffi-20231014-5454-1xfyd4s/cffi-1.16.0
+cffi==1.16.0
 charset-normalizer==3.2.0
 click==8.1.7
 colorama==0.4.4
-cryptography @ file:///private/tmp/python-cryptography-20231016-6219-12ft0rn/cryptography-41.0.4
+cryptography==41.0.4
 distlib==0.3.7
 docutils==0.16
 fastapi==0.104.0
@@ -38,7 +38,7 @@ packaging==23.2
 platformdirs==3.11.0
 pluggy==1.3.0
 pyasn1==0.5.0
-pycparser @ file:///private/tmp/pycparser-20231013-5559-1dtd22y/pycparser-2.21
+pycparser==2.21
 pydantic==2.4.2
 pydantic_core==2.10.1
 pytest==7.4.2

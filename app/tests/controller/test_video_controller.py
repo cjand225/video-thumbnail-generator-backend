@@ -3,7 +3,7 @@
 import os
 import aiofiles.os
 from fastapi.testclient import TestClient
-from fastapi import status, HTTPException
+from fastapi import status
 from unittest.mock import patch
 from io import BytesIO
 import pytest

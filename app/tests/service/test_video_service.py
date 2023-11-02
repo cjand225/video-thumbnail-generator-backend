@@ -4,8 +4,6 @@ import shutil
 import pytest
 from fastapi import UploadFile
 from app.api.service.video_service import VideoService
-from app.api.models import VideoUploadResponse
-from app.storage.storage_provider import StorageProvider
 
 # Create a fixture for the UploadFile
 @pytest.fixture

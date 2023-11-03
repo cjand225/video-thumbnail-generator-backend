@@ -10,9 +10,10 @@ Dependencies:
 - app.api.service.video_service: A module providing video processing services.
 - app.api.models: A module defining request and response models for the API.
 - app.helpers.time: A helper module for time-related functionalities.
+- app.helpers.video: A helper module for video validation functionalities.
 
 Available Routes:
-- POST /upload: Upload a video file and return a response with the video's filename and unique identifier.
+- POST /upload: Upload a video file and return a response with the video's filename and unique identifier. Only supports specific video formats.
 - POST /generate-thumbnail: Generate a thumbnail for a given video at a specific timestamp and resolution, returning the thumbnail's unique identifier.
 - GET /get-thumbnail/{thumbnail_id}: Retrieve a thumbnail image by its unique identifier.
 """
@@ -21,14 +22,14 @@ from fastapi import APIRouter, File, UploadFile, HTTPException, status
 from fastapi.responses import StreamingResponse
 from app.api.service.video_service import VideoService
 from app.api.models import VideoUploadResponse, ThumbnailResponse, ThumbnailRequest
-from app.helpers.time import seconds_to_timestamp
+from app.helpers.video import is_supported_video_format, is_valid_resolution, is_valid_seconds, seconds_to_timestamp
 
 router = APIRouter()
 
 @router.post("/upload", response_model=VideoUploadResponse)
 async def upload_video(file: UploadFile = File(...)):
     """
-    Handle video file uploads.
+    Handle video file uploads. Validates the file format before uploading.
 
     Args:
         file (UploadFile): The video file to be uploaded, wrapped in FastAPI's File class for form data.
@@ -37,8 +38,13 @@ async def upload_video(file: UploadFile = File(...)):
         VideoUploadResponse: An object containing the uploaded video's filename and unique identifier.
 
     Raises:
+        HTTPException: An HTTP 400 error for unsupported video formats.
         HTTPException: An HTTP 500 error indicating the video upload failed.
     """
+
+    if not is_supported_video_format(file.filename):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Unsupported video format: {file.filename}")
+    
     try:
         file_data = await file.read()
         file_name, file_id = await VideoService.upload_video(file_name=file.filename, file_data=file_data)
@@ -49,7 +55,7 @@ async def upload_video(file: UploadFile = File(...)):
 @router.post("/generate-thumbnail", response_model=ThumbnailResponse)
 async def generate_thumbnail(request: ThumbnailRequest):
     """
-    Generate a thumbnail for a video.
+    Generate a thumbnail for a video. Validates the resolution and timestamp before processing.
 
     Args:
         request (ThumbnailRequest): A request object containing the video file's ID, the timestamp for the thumbnail,
@@ -59,9 +65,16 @@ async def generate_thumbnail(request: ThumbnailRequest):
         ThumbnailResponse: An object containing the unique identifier of the generated thumbnail.
 
     Raises:
+        HTTPException: An HTTP 400 error for unsupported video resolutions or timestamps.
         HTTPException: An HTTP 404 error if the video file is not found.
         HTTPException: An HTTP 500 error for any other server-side error.
     """
+    if not is_valid_resolution(request.resolution):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Unsupported video resolution: {request.resolution}")
+
+    if not is_valid_seconds(request.timestamp):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Unsupported timestamp format: {request.timestamp}")
+
     try:
         thumbnail_id = await VideoService.generate_thumbnail(request.file_id, seconds_to_timestamp(request.timestamp), request.resolution)
         return ThumbnailResponse(thumbnail_id=thumbnail_id)
@@ -73,7 +86,7 @@ async def generate_thumbnail(request: ThumbnailRequest):
 @router.get("/get-thumbnail/{thumbnail_id}")
 async def get_thumbnail(thumbnail_id: str):
     """
-    Retrieve a thumbnail image.
+    Retrieve a thumbnail image by its unique identifier.
 
     Args:
         thumbnail_id (str): The unique identifier of the thumbnail to retrieve.
@@ -95,6 +108,6 @@ async def get_thumbnail(thumbnail_id: str):
 
         return StreamingResponse(iter([file_content]), headers=headers)
     except FileNotFoundError:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Thumbnail file not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Thumbnail not found")
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

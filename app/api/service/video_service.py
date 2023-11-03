@@ -1,6 +1,7 @@
 from typing import Tuple
 from app.storage.storage_service import StorageService
 from app.storage.storage_factory import get_storage_service
+from app.helpers.video import supported_video_formats
 
 import os
 import uuid
@@ -63,7 +64,7 @@ class VideoService:
         # Search for the video file in the supported formats
         video_bytes = None
         file_extension = None
-        for extension in ['mp4', 'mkv', 'avi', 'mov']:
+        for extension in supported_video_formats():
             potential_path = os.path.join(VideoService.UPLOAD_DIR, f"{file_id}.{extension}")
             if await VideoService.storage_service.file_exists(potential_path):
                 video_bytes = await VideoService.storage_service.read_file(potential_path)

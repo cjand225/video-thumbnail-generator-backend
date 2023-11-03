@@ -3,7 +3,7 @@
 import os
 import aiofiles.os
 from fastapi.testclient import TestClient
-from fastapi import status, HTTPException
+from fastapi import status
 from unittest.mock import patch
 from io import BytesIO
 import pytest
@@ -134,4 +134,4 @@ def test_get_thumbnail_not_found():
     response = client.get(f"/video/v1/get-thumbnail/{nonexistent_thumbnail_id}")
 
     assert response.status_code == 404
-    assert response.json() == {"detail": "Thumbnail file not found"}
+    assert response.json() == {"detail": "Thumbnail not found"}
